@@ -1,0 +1,270 @@
+# Configuração essencial do kube-prometheus-stack para monitoramento básico do cluster
+# Esta configuração mantém apenas o necessário para um monitoramento efetivo
+
+## Nome do release
+nameOverride: ""
+fullnameOverride: ""
+
+## Labels comuns aplicados a todos os recursos
+commonLabels: {}
+
+## CRDs do Prometheus Operator
+crds:
+  enabled: true
+
+## Regras padrão de monitoramento (essenciais)
+defaultRules:
+  create: true
+  rules:
+    # Componentes essenciais
+    alertmanager: true
+    general: true
+    kubeApiserverAvailability: true
+    kubelet: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesSystem: true
+    kubeStateMetrics: true
+    node: true
+    nodeExporterAlerting: true
+    prometheus: true
+    prometheusOperator: true
+    
+    # Componentes opcionais - desabilitados para simplificar
+    etcd: false
+    configReloaders: false
+    k8sContainerCpuUsageSecondsTotal: false
+    k8sContainerMemoryCache: false
+    k8sContainerMemoryRss: false
+    k8sContainerMemorySwap: false
+    k8sContainerResource: false
+    k8sContainerMemoryWorkingSetBytes: false
+    k8sPodOwner: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubeProxy: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeRecording: false
+    kubernetesStorage: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    network: false
+    nodeExporterRecording: false
+    windows: false
+
+## Alertmanager - configuração básica
+alertmanager:
+  enabled: true
+  
+  service:
+    type: ClusterIP
+    port: 9093
+  
+  alertmanagerSpec:
+    replicas: 1
+    retention: 120h
+    
+    # Recursos mínimos
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 200Mi
+        cpu: 200m
+
+## Grafana - configuração essencial
+grafana:
+  enabled: true
+  
+  # Credenciais padrão (MUDAR EM PRODUÇÃO!)
+  adminUser: admin
+  adminPassword: admin123
+  
+  # Dashboards padrão essenciais
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: utc
+  
+  # Datasources
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+  
+  # Persistência desabilitada para simplicidade
+  persistence:
+    enabled: false
+  
+  # Recursos básicos
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+## Monitoramento dos serviços Kubernetes
+kubernetesServiceMonitors:
+  enabled: true
+
+## API Server
+kubeApiServer:
+  enabled: true
+
+## Kubelet e cAdvisor
+kubelet:
+  enabled: true
+  namespace: kube-system
+  serviceMonitor:
+    enabled: true
+    kubelet: true
+    cAdvisor: true
+    probes: true
+    resource: false  # Desabilitado para reduzir overhead
+    https: true
+    insecureSkipVerify: true
+
+## Controller Manager - desabilitado por simplicidade
+kubeControllerManager:
+  enabled: false
+
+## CoreDNS
+coreDns:
+  enabled: true
+  service:
+    enabled: true
+    port: 9153
+    targetPort: 9153
+
+## KubeDns - desabilitado (usando CoreDNS)
+kubeDns:
+  enabled: false
+
+## Etcd - desabilitado por simplicidade
+kubeEtcd:
+  enabled: false
+
+## Scheduler - desabilitado por simplicidade  
+kubeScheduler:
+  enabled: false
+
+## Kube Proxy - desabilitado por simplicidade
+kubeProxy:
+  enabled: false
+
+## Kube State Metrics
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  prometheus:
+    monitor:
+      enabled: true
+
+## Node Exporter
+nodeExporter:
+  enabled: true
+  operatingSystems:
+    linux:
+      enabled: true
+    aix: 
+      enabled: false
+    darwin:
+      enabled: false
+
+prometheus-node-exporter:
+  prometheus:
+    monitor:
+      enabled: true
+  extraArgs:
+    - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+    - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$
+
+## Prometheus Operator
+prometheusOperator:
+  enabled: true
+  
+  # Admissions webhooks - configuração básica
+  admissionWebhooks:
+    enabled: true
+    failurePolicy: "Fail"
+    
+  # Recursos básicos
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 100m
+    limits:
+      memory: 200Mi
+      cpu: 200m
+
+## Prometheus
+prometheus:
+  enabled: true
+  
+  # Não usar modo agent
+  agentMode: false
+  
+  service:
+    type: ClusterIP
+    port: 9090
+  
+  prometheusSpec:
+    # Retenção básica
+    retention: 7d  # 7 dias de retenção (reduzido para economizar espaço)
+    
+    # Uma única réplica
+    replicas: 1
+    
+    # Recursos otimizados
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+    
+    # Storage simples (sem persistência por padrão)
+    storageSpec: {}
+    # Para habilitar persistência, descomente:
+    # storageSpec:
+    #   volumeClaimTemplate:
+    #     spec:
+    #       accessModes: ["ReadWriteOnce"]
+    #       resources:
+    #         requests:
+    #           storage: 10Gi
+    
+    # Configurações de scraping otimizadas
+    scrapeInterval: "30s"
+    evaluationInterval: "30s"
+    
+    # Desabilitar recursos avançados
+    enableAdminAPI: false
+    enableRemoteWriteReceiver: false
+    
+    # Seletores para ServiceMonitors e PodMonitors
+    serviceMonitorSelectorNilUsesHelmValues: true
+    podMonitorSelectorNilUsesHelmValues: true
+    ruleSelectorNilUsesHelmValues: true
+
+## Thanos Ruler - desabilitado
+thanosRuler:
+  enabled: false
+
+## Windows monitoring - desabilitado
+windowsMonitoring:
+  enabled: false
+
+prometheus-windows-exporter:
+  enabled: false
+
+## Configurações extras desabilitadas
+extraManifests: []
