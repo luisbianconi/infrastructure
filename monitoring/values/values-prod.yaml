@@ -1,10 +1,8 @@
 # values-prod.yaml
+
 prometheusOperator:
-  admissionWebhooks:
-    patch:
-      serviceAccount:
-        create: true
-        
+  enabled: false
+
 grafana:
   enabled: true
   admin:
@@ -23,6 +21,7 @@ grafana:
           - grafana.luisbianconi.com
 
 prometheus:
+  enabled: true
   prometheusSpec:
     retention: 15d
     scrapeInterval: 15s
@@ -67,11 +66,3 @@ nodeExporter:
 
 kube-state-metrics:
   enabled: true
-
-kubelet:
-  serviceMonitor:
-    enabled: true
-    https: true
-    insecureSkipVerify: true
-    serverName: localhost
-
