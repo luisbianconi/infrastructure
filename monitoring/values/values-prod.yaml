@@ -1,0 +1,77 @@
+# values-prod.yaml
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      serviceAccount:
+        create: true
+        
+grafana:
+  enabled: true
+  admin:
+    existingSecret: grafana-admin-secret
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    hosts:
+      - grafana.luisbianconi.com
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.luisbianconi.com
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    replicas: 2
+    enableAdminAPI: false
+    podMetadata:
+      labels:
+        app: prometheus
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 500m
+      limits:
+        memory: 4Gi
+        cpu: 1
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+nodeExporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+kubelet:
+  serviceMonitor:
+    enabled: true
+    https: true
+    insecureSkipVerify: true
+    serverName: localhost
+

@@ -1,0 +1,48 @@
+# values-dev.yaml
+
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      serviceAccount:
+        create: true
+
+grafana:
+  enabled: true
+  adminPassword: admin
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 2d
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        memory: 500Mi
+        cpu: 200m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+
+alertmanager:
+  enabled: false
+
+nodeExporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+kubelet:
+  serviceMonitor:
+    enabled: true
+    https: true
+    insecureSkipVerify: true
+    serverName: localhost
+
