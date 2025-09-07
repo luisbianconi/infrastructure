@@ -3,8 +3,8 @@ prometheusOperator:
 
 grafana:
   enabled: true
-  adminUser: admin
   adminPassword: devpassword
+  adminUser: admin
   service:
     type: ClusterIP
   ingress:
