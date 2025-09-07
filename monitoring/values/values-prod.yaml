@@ -1,7 +1,7 @@
 # values-prod.yaml
 
 prometheusOperator:
-  enabled: false
+  enabled: true
 
 grafana:
   enabled: true
