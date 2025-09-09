@@ -1,0 +1,46 @@
+# === Grafana ===
+grafana:
+  admin:
+    existingSecret: grafana-admin
+  persistence:
+    enabled: false          # sem PVC
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts: [ "grafana.luisbianconicom" ]  # ajuste
+  # opcional: menos recursos pra baratear
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# === Prometheus ===
+prometheus:
+  prometheusSpec:
+    replicas: 1             # 1 réplica (HA sem PVC acaba duplicando custo e não resolve perda)
+    retention: 2d           # curto, já que storage é efêmero
+    walCompression: true
+    # Sem storageSpec => o Operator usa emptyDir (sem PVC)
+    # storageSpec: {}     # (NÃO DEFINIR)
+
+    # opcional: remote_write para retenção “barata” fora do cluster
+    # remoteWrite:
+    # - url: https://victoriametrics.example/api/v1/write
+
+  # opcional: reduzir requests
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# === Alertmanager ===
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    # Sem 'storage' => usa emptyDir; silences somem a cada restart/reschedule
+    # storage: {}      # (NÃO DEFINIR)
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi

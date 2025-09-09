@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  sources:
+  # 1) Chart oficial
+  - repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    # PINAR versão do chart (exemplo)
+    targetRevision: 77.5.0
+    helm:
+      skipCrds: true                 # CRUCIAL: CRDs já vêm do arquivo 10
+      valueFiles:
+        - ../../values/values-kps.yaml
+  # 2) Repo com seus values
+  - repoURL: https://github.com/luisbianconi/infrastructure.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
